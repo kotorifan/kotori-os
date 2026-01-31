@@ -7,13 +7,13 @@ _print_string:
 
 _print_string_loop:     
     cmp byte [bx], 0
-    je print_string_return
+    je _print_string_return
     
     mov al, [bx]
     int 0x10
     
     inc bx 
-    jmp print_string_loop
+    jmp _print_string_loop
 
 _print_string_return:   
     popa
