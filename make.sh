@@ -1,6 +1,7 @@
 #!/bin/sh 
 
 AS_BOOT="nasm -fbin -Isrc/boot/"
+AS_KERN="nasm -fbin -Isrc/boot/ -Isrc/kernel/"
 SRC_DIR="src"
 DST_DIR="dst"
 IMG_FILE="disk.img"
@@ -10,6 +11,7 @@ NAME="kotoriforth"
 clean()
 {
     rm -f $IMG_FILE
+    rm -f $ISO_FILE
     rm -rf $DST_DIR
 }
 
@@ -18,15 +20,20 @@ build()
     clean
     mkdir -p $DST_DIR/boot
     $AS_BOOT $SRC_DIR/boot/boot.stage1.asm -o $DST_DIR/s1_boot.bin
-    
-    dd if=/dev/zero of=$IMG_FILE bs=1M count=2
+    $AS_BOOT $SRC_DIR/boot/boot.stage2.asm -o $DST_DIR/s2_boot.bin
+    $AS_KERN $SRC_DIR/kernel/kernel.asm -o $DST_DIR/kernel.bin
+    dd if=/dev/zero of=disk.img bs=512 count=2048
     dd if=$DST_DIR/s1_boot.bin of=$IMG_FILE conv=notrunc bs=512 count=1
-    dd of=$DST_DIR/s2_boot.bin of=$IMG_FILE conv=notrunc bs=512 seek=1 
-    S2_SECTORS=$(($(wc -c < "$BOOT_S2") / 512))
-    dd of=$DST_DIR/kernel.bin of=$IMG_FILE conv=notrunc bs=512 $((1 + S2_SECTORS))
-    
+    echo "Written s1_boot.bin to $IMG_FILE"
+    dd if=$DST_DIR/s2_boot.bin of=$IMG_FILE conv=notrunc bs=512 seek=1 
+    echo "Written s2_boot.bin to $IMG_FILE"
+    S2_SECTORS=$(( ($(wc -c < "$DST_DIR/s2_boot.bin") + 511) / 512 ))
+    KERNEL_OFFSET=$((1 + S2_SECTORS))
+    dd if=$DST_DIR/kernel.bin of=$IMG_FILE conv=notrunc bs=512 \
+       seek=$KERNEL_OFFSET status=none
+    echo "Written kernel.bin to $IMG_FILE"
     xorriso -as mkisofs \
-            -b $DST_DIR/$IMG_FILE \
+            -b $IMG_FILE \
             -no-emul-boot \
             -boot-load-size 4 \
             -boot-info-table \
@@ -35,7 +42,8 @@ build()
             -R \
             -V "$NAME" \
             -o $ISO_FILE \
-            $ISO_FILE
+            "$(dirname "$IMG_FILE")"
+
 
     if [ -f $ISO_FILE ]; then
         echo "Bootable ISO created"

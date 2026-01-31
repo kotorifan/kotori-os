@@ -22,7 +22,7 @@ _enable_a20:
 
     .halt: hlt
     jmp .halt
-    .end
+    .end:
     ret
 
 _check_a20:     
@@ -143,5 +143,5 @@ _enable_a20_io92:
     or al, 2
     and al, 0xfe
     out 0x92, al
-    .end
+    .end:
     ret

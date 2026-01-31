@@ -1,4 +1,4 @@
-y    ;; boot.stage2.gdt32.asm
+    ;; boot.stage2.gdt32.asm
 
     
 GDT32:  
@@ -25,5 +25,5 @@ GDT32_ptr:
     .limit: dw GDT32_end - GDT32 - 1
     .base: dd GDT32
 
-    CODE_SEG32 equ gdt32_code_segment - gdt32_start
-    DATA_SEG32 equ gdt32_data_segment - gdt32_start
+    CODE_SEG32 equ GDT32.code - GDT32
+    DATA_SEG32 equ GDT32.data - GDT32
