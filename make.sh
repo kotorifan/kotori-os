@@ -22,8 +22,8 @@ build()
     $AS_BOOT $SRC_DIR/boot/boot.stage1.asm -o $DST_DIR/s1_boot.bin
     $AS_BOOT $SRC_DIR/boot/boot.stage2.asm -o $DST_DIR/s2_boot.bin
     $AS_KERN $SRC_DIR/kernel/kernel.asm -o $DST_DIR/kernel.bin
-    dd if=/dev/zero of=disk.img bs=512 count=2048
-    dd if=$DST_DIR/s1_boot.bin of=$IMG_FILE conv=notrunc bs=512 count=1
+    dd if=/dev/zero of=disk.img bs=512 count=2880
+    dd if=$DST_DIR/s1_boot.bin of=$IMG_FILE conv=notrunc 
     echo "Written s1_boot.bin to $IMG_FILE"
     dd if=$DST_DIR/s2_boot.bin of=$IMG_FILE conv=notrunc bs=512 seek=1 
     echo "Written s2_boot.bin to $IMG_FILE"
@@ -37,12 +37,8 @@ build()
             -no-emul-boot \
             -boot-load-size 4 \
             -boot-info-table \
-            -iso-level 3 \
-            -J \
-            -R \
-            -V "$NAME" \
             -o $ISO_FILE \
-            "$(dirname "$IMG_FILE")"
+            .
 
 
     if [ -f $ISO_FILE ]; then
