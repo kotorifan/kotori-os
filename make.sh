@@ -1,9 +1,11 @@
 #!/bin/sh 
 
-AS_BOOT="nasm -fbin -Isrc/boot/"
-AS_KERN="nasm -fbin -Isrc/boot/ -Isrc/kernel/"
+AS_BOOT="nasm -felf32 -Isrc/boot/"
+AS_KERN="nasm -felf32 -Isrc/boot/ -Isrc/kernel/"
 SRC_DIR="src"
 DST_DIR="dst"
+LD="ld -T linker.ld -m elf_i386 -nostdlib"
+LD_FILE="linked.o"
 IMG_FILE="disk.img"
 ISO_FILE="disk.iso"
 NAME="kotoriforth"
@@ -19,32 +21,17 @@ build()
 {
     clean
     mkdir -p $DST_DIR/boot
-    $AS_BOOT $SRC_DIR/boot/boot.stage1.asm -o $DST_DIR/s1_boot.bin
-    $AS_BOOT $SRC_DIR/boot/boot.stage2.asm -o $DST_DIR/s2_boot.bin
-    $AS_KERN $SRC_DIR/kernel/kernel.asm -o $DST_DIR/kernel.bin
-    dd if=/dev/zero of=disk.img bs=512 count=2880
-    dd if=$DST_DIR/s1_boot.bin of=$IMG_FILE conv=notrunc 
-    echo "Written s1_boot.bin to $IMG_FILE"
-    dd if=$DST_DIR/s2_boot.bin of=$IMG_FILE conv=notrunc bs=512 seek=1 
-    echo "Written s2_boot.bin to $IMG_FILE"
-    S2_SECTORS=$(( ($(wc -c < "$DST_DIR/s2_boot.bin") + 511) / 512 ))
-    KERNEL_OFFSET=$((1 + S2_SECTORS))
-    dd if=$DST_DIR/kernel.bin of=$IMG_FILE conv=notrunc bs=512 \
-       seek=$KERNEL_OFFSET status=none
-    echo "Written kernel.bin to $IMG_FILE"
-    xorriso -as mkisofs \
-            -b $IMG_FILE \
-            -no-emul-boot \
-            -boot-load-size 4 \
-            -boot-info-table \
-            -o $ISO_FILE \
-            .
-
-
-    if [ -f $ISO_FILE ]; then
-        echo "Bootable ISO created"
-    fi
+    mkdir -p $DST_DIR/objs
+    $AS_BOOT $SRC_DIR/boot/boot.stage1.asm -o $DST_DIR/objs/s1_boot.o
+    $AS_BOOT $SRC_DIR/boot/boot.stage2.asm -o $DST_DIR/objs/s2_boot.o
+    $AS_KERN $SRC_DIR/kernel/kernel.asm -o $DST_DIR/objs/kernel.o
     
+    $LD $DST_DIR/objs/s1_boot.o \
+        $DST_DIR/objs/s2_boot.o \
+        $DST_DIR/objs/kernel.o \
+        -o $LD_FILE
+    
+    objcopy -O binary $LD_FILE $DST_DIR/$IMG_FILE
 }
 
 run()
