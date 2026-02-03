@@ -11,6 +11,7 @@ A lot of code is from these sites. Check them out.
 - https://thasso.xyz/setting-up-an-x86-cpu.html
 - https://tumbleforth.hardcoded.net/
 - https://alamot.github.io/os_stage1/
+- https://github.com/nornagon/jonesforth/blob/master/jonesforth.S
 
 Copying
 -------

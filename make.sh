@@ -1,14 +1,11 @@
 #!/bin/sh 
 
-AS_BOOT="nasm -felf32 -Isrc/boot/"
-AS_KERN="nasm -felf32 -Isrc/boot/ -Isrc/kernel/"
+AS_BOOT="nasm -fbin -Isrc/boot/ -Isrc/"
+AS_KERN="nasm -fbin -Isrc/boot/ -Isrc/kernel/ -Isrc/"
 SRC_DIR="src"
 DST_DIR="dst"
-LD="ld -T linker.ld -m elf_i386 -nostdlib"
-LD_FILE="$DST_DIR/linked.o"
+
 IMG_FILE="disk.img"
-ISO_FILE="disk.iso"
-NAME="kotoriforth"
 
 clean()
 {
@@ -22,27 +19,27 @@ build()
     clean
     mkdir -p $DST_DIR/boot
     mkdir -p $DST_DIR/objs
-    $AS_BOOT $SRC_DIR/boot/boot.stage1.asm -o $DST_DIR/objs/s1_boot.o
-    $AS_BOOT $SRC_DIR/boot/boot.stage2.asm -o $DST_DIR/objs/s2_boot.o
-    $AS_KERN $SRC_DIR/kernel/kernel.asm -o $DST_DIR/objs/kernel.o
-    
-    $LD $DST_DIR/objs/s1_boot.o \
-        $DST_DIR/objs/s2_boot.o \
-        $DST_DIR/objs/kernel.o \
-        -o $LD_FILE
-    
-    objcopy -O binary $LD_FILE $DST_DIR/$IMG_FILE
+    $AS_BOOT $SRC_DIR/boot/boot.stage1.asm -o $DST_DIR/objs/s1_boot.bin
+    $AS_BOOT $SRC_DIR/boot/boot.stage2.asm -o $DST_DIR/objs/s2_boot.bin
+    $AS_KERN $SRC_DIR/kernel/kernel.asm -o $DST_DIR/objs/kernel.bin
+
+    dd if=/dev/zero of=$IMG_FILE bs=512 count=14336
+
+    dd if=$DST_DIR/objs/s1_boot.bin of=$IMG_FILE bs=512 count=1 conv=notrunc
+    dd if=$DST_DIR/objs/s2_boot.bin of=$IMG_FILE bs=512 seek=1 conv=notrunc
+    dd if=$DST_DIR/objs/kernel.bin of=$IMG_FILE bs=512 seek=10 conv=notrunc
 }
 
 run()
 {
-    qemu-system-i386 -cdrom $IMG_FILE
+    qemu-system-i386 -drive format=raw,file=$IMG_FILE
 }
 
 debug()
 {
-    qemu-system-i386 -cdrom $IMG_FILE -S -s
+    qemu-system-i386 -drive format=raw,file=$IMG_FILE -S -s
 }
+
 case $1 in
     "clean") clean ;;
     "build") build ;;

@@ -1,16 +1,8 @@
     ;; boot.stage1.asm 
     [bits 16]
-
+    [org 0x7c00]
     global _start
 
-    %include "boot.stage1.print.asm"
-
-    %define READ_SECTORS_NUM 64
-    %define BOOT_LOAD_ADDR 0x7c00
-    %define STAGE2_ADDR 0x7e00
-    %define SECTOR_SIZE 512
-
-section .boot_sector
 
 _start: 
     ;; Setup segment registers
@@ -18,26 +10,31 @@ _start:
     mov ds, ax
     mov es, ax  
     mov ss, ax
-    mov gs, ax
-    mov fs, ax
+    mov sp, STACK_ADDR              ; Adjust stack
+    
+    cld
 
+    mov [drive], dl             ; Get boot drive number
+
+    ;; Show boot message
+    mov si, boot_msg
+    call _print_string
+
+    ;; Load Stage 2
+    mov ah, 0x42                ; Extended read
+    mov dl, [drive]             ; Set drive number 
+    xor ax, ax
+    mov ds, ax
     mov si, DAP
-    mov ah, 0x42                ; Extended read function
-    mov dl, 0x80                ; Drive Number (starts at 0x80, thus it is 1)
-    int 0x13
+    int 0x13                    ; Read disk 
     jc _disk_read_err
 
-_ignore_disk_read_err:  
-    mov si, _jmp_msg
-    call _print_string
     jmp 0x0000:STAGE2_ADDR
+    
 
 _disk_read_err: 
-    cmp word [DAP.num_sectors], READ_SECTORS_NUM
-    jle _ignore_disk_read_err
-
-    mov si, _disk_read_err_msg
-    call _print_string
+    mov si, disk_read_err_msg
+    call _print_string 
 
     .halt: hlt
     jmp .halt
@@ -46,14 +43,17 @@ _disk_read_err:
 DAP:    
     db 0x10                             ; Size of packet
     db 0                                ; Zero
-    .num_sectors:
     dw READ_SECTORS_NUM                 ; Number of sectors to be read
-    dd (BOOT_LOAD_ADDR + SECTOR_SIZE)   ; Destination address
+    dw STAGE2_ADDR                      ; Destination address
+    dw 0x0000                           ; Segment
     dq 1                                ; Which sector to start at
 
-_disk_read_err_msg: db "Disk error", 13, 10, 0
-_jmp_msg:   db "Jumping to Stage 2", 13, 10, 0
+drive:  db 0
+disk_read_err_msg: db "Disk error", 13, 10, 0
+boot_msg:  db "Booting", 13, 10, 0
 
-	;; Padding and magic number
-	times 510 - ($ - $$) db 0
-	dw 0xaa55
+    %include "boot.stage1.print.asm"
+    %include "common.asm"
+
+    times 510-($-$$) db 0
+    dw 0xAA55

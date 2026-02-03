@@ -1,5 +1,5 @@
     ;;  boot.stage2.a20.asm
-    
+    section .stage2
 _enable_a20:    
     call _check_a20
     test ax, ax

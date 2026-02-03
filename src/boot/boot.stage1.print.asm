@@ -3,19 +3,15 @@
     %define BOOT_STAGE1_PRINT_ASM
 
 _print_string:  
-    pusha
-    mov ah, 0x0e
-    mov bh, 0x00
-
-    .print_loop:     
+    .loop:
     lodsb
-    test al, al
-	je .print_return
+    or al, al   
+    jz .done
+    mov ah, 0x0e
     int 0x10
-	jmp .print_loop
+    jmp .loop
+    .done:
+    ret
 
-    .print_return:
-	popa
-	ret
 
     %endif
