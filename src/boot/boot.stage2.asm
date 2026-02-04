@@ -21,7 +21,7 @@ _s2_entry:
     or eax, 1
     mov cr0, eax
 
-    jmp CODE_SEG32:_protected_mode
+    jmp far CODE_SEG32:_protected_mode
 
     [bits 32]
 _protected_mode:    
