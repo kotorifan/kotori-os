@@ -3,7 +3,7 @@
     %define COMMON_ASM
 
     ;; Real mode constants
-    %define READ_SECTORS_NUM 1
+    %define READ_SECTORS_NUM 16
     %define BOOT_LOAD_ADDR 0x7c00
     %define STAGE2_ADDR 0x7e00
     %define SECTOR_SIZE 512

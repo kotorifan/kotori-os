@@ -2,7 +2,9 @@
     [bits 16]
     [org 0x7c00]
     global _start
-
+    jmp _start
+    %include "boot.stage1.print.asm"
+    %include "common.asm"
 
 _start: 
     ;; Setup segment registers
@@ -21,11 +23,10 @@ _start:
     call _print_string
 
     ;; Load Stage 2
-    mov ah, 0x42                ; Extended read
-    mov dl, [drive]             ; Set drive number 
+    mov si, DAP                 ; DAP is at cs:si
     xor ax, ax
-    mov ds, ax
-    mov si, DAP
+    mov ah, 0x42                ; Extended read
+    mov dl, [drive]             ; Set drive number
     int 0x13                    ; Read disk 
     jc _disk_read_err
 
@@ -40,20 +41,16 @@ _disk_read_err:
     jmp .halt
 
     align 16
-DAP:    
-    db 0x10                             ; Size of packet
-    db 0                                ; Zero
-    dw READ_SECTORS_NUM                 ; Number of sectors to be read
-    dw STAGE2_ADDR                      ; Destination address
-    dw 0x0000                           ; Segment
-    dq 1                                ; Which sector to start at
-
+DAP:
+    db 0x10
+    db 0
+    dw READ_SECTORS_NUM
+    dw STAGE2_ADDR
+    dw 0x0000
+    dq 1
 drive:  db 0
 disk_read_err_msg: db "Disk error", 13, 10, 0
 boot_msg:  db "Booting", 13, 10, 0
-
-    %include "boot.stage1.print.asm"
-    %include "common.asm"
 
     times 510-($-$$) db 0
     dw 0xAA55
