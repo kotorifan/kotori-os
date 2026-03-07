@@ -30,6 +30,7 @@ _start:
     int 0x13                    ; Read disk 
     jc _disk_read_err
 
+    mov dl, [drive]
     jmp 0x0000:STAGE2_ADDR
     
 

@@ -27,7 +27,7 @@ build()
 
     dd if=$DST_DIR/objs/s1_boot.bin of=$IMG_FILE bs=512 count=1 conv=notrunc
     dd if=$DST_DIR/objs/s2_boot.bin of=$IMG_FILE bs=512 seek=1 conv=notrunc
-    dd if=$DST_DIR/objs/kernel.bin of=$IMG_FILE bs=512 seek=10 conv=notrunc
+    dd if=$DST_DIR/objs/kernel.bin of=$IMG_FILE bs=512 seek=66 conv=notrunc
 }
 
 run()
