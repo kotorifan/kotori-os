@@ -46,10 +46,10 @@ _protected_mode:
         mov esp, 0x90000
         and esp, 0xFFFFFFF0         ; Align to 16-byte boundary
 
-        mov esi, boot_protmode_msg
-        call _print_string_pm_vga 
+        ;; mov esi, boot_protmode_msg
+        ;; call _print_string_pm_vga 
 
-        call 0x10000
+        jmp CODE_SEG32:0x10000
         
 boot_s2_msg:    
         db "Entering Stage 2", 13, 10, 0
@@ -63,10 +63,10 @@ align 16
 DAP_kernel: 
         db 0x10
         db 0
-        dw 1                         ; Number of sectors
+        dw 16                         ; Number of sectors
         dw 0x0000   
         dw 0x1000                    ; Offset
-        dq 66                        ; Starting sector
+        dq 66                       ; Starting sector
 
 %include "boot.stage1.print.asm"
 %include "boot.stage2.a20.asm"

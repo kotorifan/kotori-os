@@ -1,7 +1,7 @@
 #!/bin/sh 
 
-AS_BOOT="nasm -fbin -Isrc/boot/ -Icommon/"
-AS_KERN="nasm -fbin -Isrc/boot/ -Isrc/kernel/ -Icommon/"
+AS_BOOT="nasm -fbin -Isrc/boot/ -Isrc/common/"
+AS_KERN="nasm -fbin -Isrc/boot/ -Isrc/kernel/ -Isrc/common/"
 SRC_DIR="src"
 DST_DIR="dst"
 
@@ -37,7 +37,7 @@ run()
 
 debug()
 {
-    qemu-system-i386 -drive format=raw,file=$IMG_FILE -S -s
+    qemu-system-i386 -drive format=raw,file=$IMG_FILE -S -s -d int,cpu_reset -no-shutdown -no-reboot
 }
 
 case $1 in

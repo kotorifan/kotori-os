@@ -13,7 +13,7 @@
 %define VGA_COLOR_BLACK 0
 %define VGA_COLOR_GREEN 2
 %define VGA_COLOR_RED 4
-%define VGA_WHITE_ON_BLACK 0x0f20
+%define VGA_WHITE_ON_BLACK 0x0f
 %define VGA_BUFFER 0xb8000
 %define VGA_SCREEN_X 80
 %define VGA_SCREEN_Y 25
