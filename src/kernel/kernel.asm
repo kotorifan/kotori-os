@@ -1,20 +1,22 @@
-    ;; kernel.asm
-    [bits 32]
-    [org 0x10000]
+;; kernel.asm
+[bits 32]
+[org 0x10000]
 
-    %include "common.asm"
+%include "common.asm"
+%include "common.protmode.print.asm"
+%include "common.protmode.clear.asm"
+
 _kernel_entry:  
-    call _clear_screen
+        cli                         ; No interrupts yet
+        mov ebp, RET_STACK
+        mov esp, DATA_STACK
 
-    .halt: hlt
-    jmp .halt
+        call _clear_screen
+        call _show_welcome_msg
+        
+.halt: hlt
+        jmp .halt
 
-_clear_screen:  
-    mov edi, VGA_BUFFER
-    mov ecx, VGA_SCREEN
-    mov ax, VGA_WHITE_ON_BLACK
-    .clear:
-    mov [edi], eax
-    add edi, 2
-    loop .clear
-    ret
+welcome_msg:
+        db "Welcome...", 13, 10, 0
+   

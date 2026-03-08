@@ -1,7 +1,7 @@
 #!/bin/sh 
 
-AS_BOOT="nasm -fbin -Isrc/boot/ -Isrc/"
-AS_KERN="nasm -fbin -Isrc/boot/ -Isrc/kernel/ -Isrc/"
+AS_BOOT="nasm -fbin -Isrc/boot/ -Icommon/"
+AS_KERN="nasm -fbin -Isrc/boot/ -Isrc/kernel/ -Icommon/"
 SRC_DIR="src"
 DST_DIR="dst"
 
