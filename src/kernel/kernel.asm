@@ -26,3 +26,5 @@ welcome_msg:
 
 %include "common.protmode.print.asm"
 %include "common.protmode.clear.asm"
+
+%include "pci.asm"
