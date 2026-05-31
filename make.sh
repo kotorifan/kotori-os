@@ -6,6 +6,8 @@ LD=x86_64-elf-ld
 AS=nasm
 CCFLAGS="-Wall \
     -Wextra \
+    -i system src/kernel/ \
+    -Isrc/libc/include/ \
     -std=gnu99 \
     -ffreestanding \
     -fno-stack-protector \
