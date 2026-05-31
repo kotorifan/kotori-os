@@ -25,12 +25,11 @@ CCFLAGS="-Wall \
     -mno-sse2 \
     -mno-red-zone \
     -mcmodel=kernel"
-LDFLAGS=" -m elf_x86_64 \
-    -nostdlib \
-    -static \
-    -z max-page-size=0x1000 \
-    --gc-sections \
-    -T linker.lds"
+LDFLAGS="-nostdlib \
+        -static \
+        -z max-page-size=0x1000 \
+        --gc-sections \
+        -T linker.lds"
 ASFLAGS="-felf64"
 
 
@@ -45,7 +44,7 @@ build_limine()
     rm -rf limine-binary limine-binary.tar.gz
     curl -L https://github.com/Limine-Bootloader/Limine/releases/latest/download/limine-binary.tar.gz | gunzip | tar -xf -
     make -C limine-binary && \
-    echo "Done building Limine"
+        echo "Done building Limine"
 }
 
 build()
@@ -64,26 +63,37 @@ build()
 
     find build -name "*.o" | xargs $LD $LDFLAGS -o $OUTPUT
 
-    dd if=/dev/zero bs=1M count=0 seek=64 of=disk.img
+    dd if=/dev/zero bs=1M count=0 seek=64 of=disk.img && \
+    echo "Done creating disk image"
+    /sbin/parted -s disk.img mklabel gpt && \
+    echo "Created GPT table"
+    /sbin/parted -s disk.img mkpart primary 1MiB 2MiB && \
+    /sbin/parted -s disk.img set 1 bios_grub on && \
+    echo "Created BIOS boot partition"
+    /sbin/parted -s disk.img mkpart ESP fat32 4096s 100% && \
+    /sbin/parted -s disk.img set 2 esp on && \
+    echo "Created ESP partition"
+if [ -f "./limine-binary/limine" ]; then
+    # Wipe BIOS boot partition
+    dd if=/dev/zero of=disk.img bs=512 count=2048 seek=2048 conv=notrunc
     
-    /sbin/parted -s disk.img \
-           mklabel gpt \
-           mkpart ESP fat32 2048s 100% \
-           set 1 esp on
-
-    if [ -f "./limine-binary/limine" ]; then
-        ./limine-binary/limine bios-install disk.img
-        mformat -F disk.img@@1M
-        mmd -i disk.img@@1M ::/EFI ::/EFI/BOOT ::/boot/ ::/boot/limine
-        
-        mcopy -i disk.img@@1M $OUTPUT ::/boot
-        mcopy -i disk.img@@1M limine.conf limine-binary/limine-bios.sys ::/boot/limine
-        mcopy -i disk.img@@1M limine-binary/BOOTX64.EFI ::/EFI/BOOT
-        mcopy -i disk.img@@1M limine-binary/BOOTIA32.EFI ::/EFI/BOOT
-    fi
+    ./limine-binary/limine bios-install disk.img
     
-}   
-
+    mformat -F -i disk.img@@2M ::
+    mmd -i disk.img@@2M ::/EFI
+    mmd -i disk.img@@2M ::/EFI/BOOT
+    mmd -i disk.img@@2M ::/boot
+    mmd -i disk.img@@2M ::/boot/limine
+    
+    mcopy -i disk.img@@2M $OUTPUT ::/boot
+    mcopy -i disk.img@@2M limine.conf ::/boot/limine
+    mcopy -i disk.img@@2M limine-binary/limine-bios.sys ::/boot/limine
+    mcopy -i disk.img@@2M limine-binary/BOOTX64.EFI ::/EFI/BOOT
+    mcopy -i disk.img@@2M limine-binary/BOOTIA32.EFI ::/EFI/BOOT
+    
+    echo "Built"
+fi
+}
 debug()
 {
     qemu-system-x86_64 -hdd disk.img -S -s -monitor stdio

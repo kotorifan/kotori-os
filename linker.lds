@@ -1,5 +1,4 @@
-OUTPUT_FORMAT(elf64-x86_64)
-
+OUTPUT_FORMAT("elf64-x86-64")
 ENTRY(kmain)
 
 PHDRS
@@ -12,7 +11,7 @@ PHDRS
 
 SECTIONS
 {
-    
+    . = 0xffffffff80000000;
     .limine_requests : {
         KEEP(*(.limine_requests_start))
         KEEP(*(.limine_requests))
