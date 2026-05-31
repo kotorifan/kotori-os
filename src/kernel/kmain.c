@@ -14,7 +14,6 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
     .revision = 0
 };
 
-
 __attribute__((used, section(".limine_requests_start")))
 static volatile uint64_t limine_requests_start_marker[] = LIMINE_REQUESTS_START_MARKER;
 
@@ -34,15 +33,15 @@ void kmain(void)
 		// Add errors here
 		halt_catch_fire();
 	}
-	if(framebuffer_request.response = NULL || framebuffer_request.response->framebuffer_count < 1) {
+	if(framebuffer_request.response == NULL || framebuffer_request.response->framebuffer_count < 1) {
 		halt_catch_fire();
 	}
 
 	struct limine_framebuffer* fb = framebuffer_request.response->framebuffers[0];
 
-	volatile uint32_t* fb_ptr = fb->address;
+	volatile int* fb_ptr = fb->address;
 	for(size_t iter_y = 0; iter_y < fb->height; iter_y++) {
-		for(size_t iter_x; iter_x < fb->width; iter_y++) {
+		for(size_t iter_x = 0; iter_x < fb->width; iter_x++) {
 			uint32_t nX = iter_x * 255 / fb->width;
 			uint32_t nY = iter_y * 255 / fb->height;
 			fb_ptr[iter_y * (fb->pitch / 4) + iter_x] = (nY << 8) | nX;

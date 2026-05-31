@@ -6,7 +6,7 @@ LD=x86_64-elf-ld
 AS=nasm
 CCFLAGS="-Wall \
     -Wextra \
-    -i system src/kernel/ \
+    -isystem src/kernel/ \
     -Isrc/libc/include/ \
     -std=gnu99 \
     -ffreestanding \
@@ -31,92 +31,92 @@ LDFLAGS=" -m elf_x86_64 \
     -z max-page-size=0x1000 \
     --gc-sections \
     -T linker.lds"
-ASFLAGS=-"felf64"
+ASFLAGS="-felf64"
 
 
 
-function clean()
+clean()
 {
     rm -rf build $OUTPUT
 }
 
-function build_limine()
+build_limine()
 {
+    rm -rf limine-binary limine-binary.tar.gz
     curl -L https://github.com/Limine-Bootloader/Limine/releases/latest/download/limine-binary.tar.gz | gunzip | tar -xf -
-
     make -C limine-binary && \
     echo "Done building Limine"
 }
 
-function build()
+build()
 {
     mkdir -p build
 
     find src -name '*.c' | while IFS= read -r f; do
         mkdir -p "build/$(dirname "$f")"
-        $CC $CFLAGS -MMD -MP -c "$f" -o "build/${f}.o"    
+        $CC $CCFLAGS -MMD -MP -c "$f" -o "build/${f%.c}.o"    
     done
 
     find src -name "*.asm" | while IFS= read -r f; do
         mkdir -p "build/$(dirname "$f")"
-        $AS $ASFLAGS "$f" -o "build/${f}.o"
+        $AS $ASFLAGS "$f" -o "build/${f%.asm}.o"
     done
 
     find build -name "*.o" | xargs $LD $LDFLAGS -o $OUTPUT
 
     dd if=/dev/zero bs=1M count=0 seek=64 of=disk.img
     
-    parted -s disk.img \
+    /sbin/parted -s disk.img \
            mklabel gpt \
            mkpart ESP fat32 2048s 100% \
            set 1 esp on
 
     if [ -f "./limine-binary/limine" ]; then
         ./limine-binary/limine bios-install disk.img
-        mformat disk.img@@1M
+        mformat -F disk.img@@1M
         mmd -i disk.img@@1M ::/EFI ::/EFI/BOOT ::/boot/ ::/boot/limine
         
-        mcopy -i image.hdd@@1M bin/kernel ::/boot
-        mcopy -i image.hdd@@1M limine.conf limine-binary/limine-bios.sys ::/boot/limine
-        mcopy -i image.hdd@@1M limine-binary/BOOTX64.EFI ::/EFI/BOOT
-        mcopy -i image.hdd@@1M limine-binary/BOOTIA32.EFI ::/EFI/BOOT
+        mcopy -i disk.img@@1M $OUTPUT ::/boot
+        mcopy -i disk.img@@1M limine.conf limine-binary/limine-bios.sys ::/boot/limine
+        mcopy -i disk.img@@1M limine-binary/BOOTX64.EFI ::/EFI/BOOT
+        mcopy -i disk.img@@1M limine-binary/BOOTIA32.EFI ::/EFI/BOOT
     fi
     
 }   
 
-function debug()
+debug()
 {
     qemu-system-x86_64 -hdd disk.img -S -s -monitor stdio
 }
 
-function run()
+run()
 {
     qemu-system-x86_64 -hdd disk.img 
 }
 
 case "$1" in
     clean)
-        clean()
+        clean
         exit 0
         ;;
     build|'')
-        build()
+        build
         exit 0
         ;;
     build_limine)
-        build_limine();
-        exit 0;
+        build_limine
+        exit 0
         ;;
     run)
-        run()
+        run
         exit 0
         ;;
     debug)
-        debug()
+        debug
         exit 0
         ;;
     *)
-        echo "Usage: $0 [build|clean]"
+        echo "Wrong arguments"
         exit 1
         ;;
 esac
