@@ -36,17 +36,21 @@ ASFLAGS="-felf64"
 
 clean()
 {
-    rm -rf build $OUTPUT
+    rm -rvf \
+       build \
+       $OUTPUT \
+       disk.img \
+       ./other/unscii.psf
 }
 
 build_limine()
 {
-    rm -rf limine-binary limine-binary.tar.gz
-    curl -L https://github.com/Limine-Bootloader/Limine/releases/latest/download/limine-binary.tar.gz | gunzip | tar -xf -
-    make -C limine-binary && \
+    mkdir -p other
+    rm -rf other/limine-binary limine-binary.tar.gz
+    curl -L https://github.com/Limine-Bootloader/Limine/releases/latest/download/limine-binary.tar.gz | gunzip | tar -xf - -C other/
+    make -C other/limine-binary && \
         echo "Done building Limine"
 }
-
 build()
 {
     mkdir -p build
@@ -61,7 +65,12 @@ build()
         $AS $ASFLAGS "$f" -o "build/${f%.asm}.o"
     done
 
-    find build -name "*.o" | xargs $LD $LDFLAGS -o $OUTPUT
+    if [ ! -f "./other/unscii.psf" ]; then
+        python3 ./scripts/hex2psf1.py
+    fi
+
+    $LD -r -b binary ./other/unscii.psf -o build/unscii.o
+    $LD $LDFLAGS -o $OUTPUT $(find build -name "*.o")
 
     dd if=/dev/zero bs=1M count=0 seek=64 of=disk.img && \
     echo "Done creating disk image"
@@ -73,11 +82,11 @@ build()
     /sbin/parted -s disk.img mkpart ESP fat32 4096s 100% && \
     /sbin/parted -s disk.img set 2 esp on && \
     echo "Created ESP partition"
-if [ -f "./limine-binary/limine" ]; then
+if [ -f "./other/limine-binary/limine" ]; then
     # Wipe BIOS boot partition
     dd if=/dev/zero of=disk.img bs=512 count=2048 seek=2048 conv=notrunc
     
-    ./limine-binary/limine bios-install disk.img
+    ./other/limine-binary/limine bios-install disk.img
     
     mformat -F -i disk.img@@2M ::
     mmd -i disk.img@@2M ::/EFI
@@ -86,10 +95,10 @@ if [ -f "./limine-binary/limine" ]; then
     mmd -i disk.img@@2M ::/boot/limine
     
     mcopy -i disk.img@@2M $OUTPUT ::/boot
-    mcopy -i disk.img@@2M limine.conf ::/boot/limine
-    mcopy -i disk.img@@2M limine-binary/limine-bios.sys ::/boot/limine
-    mcopy -i disk.img@@2M limine-binary/BOOTX64.EFI ::/EFI/BOOT
-    mcopy -i disk.img@@2M limine-binary/BOOTIA32.EFI ::/EFI/BOOT
+    mcopy -i disk.img@@2M ./limine.conf ::/boot/limine
+    mcopy -i disk.img@@2M ./other/limine-binary/limine-bios.sys ::/boot/limine
+    mcopy -i disk.img@@2M ./other/limine-binary/BOOTX64.EFI ::/EFI/BOOT
+    mcopy -i disk.img@@2M ./other/limine-binary/BOOTIA32.EFI ::/EFI/BOOT
     
     echo "Built"
 fi

@@ -1,4 +1,5 @@
 build/
 disk.img
-limine-binary
+other/limine-binary
 kotori-os
+other/unscii.psf
