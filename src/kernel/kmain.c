@@ -42,12 +42,12 @@ void kmain(void)
 	}
 	fb = framebuffer_request.response->framebuffers[0];
 
-	//psf1_font_t font;
-	//init_font(&font);
+	psf1_font_t font;
+	init_font(&font);
 
 	init_serial();
 	write_serial("test\n");
 
-	//tty_putchar(&font, 'a', 20, 20, 0xffffff, 0x000000);
+	tty_putchar(&font, 'a', 0, 0, 0xffffff, 0x000000);
     halt_catch_fire();
 }

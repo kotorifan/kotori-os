@@ -108,10 +108,10 @@ debug()
     qemu-system-x86_64 \
 	    -drive format=raw,file=disk.img \
 	    -S -s \
-        -serial mon:stdio
-	-d int \
-	   -no-shutdown \
-	   -no-reboot
+        -serial mon:stdio \
+        -d int \
+	    -no-shutdown \
+	    -no-reboot
 }
 
 run()

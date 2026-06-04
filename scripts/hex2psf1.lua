@@ -24,7 +24,7 @@ if not out then
    os.exit(1)
 end
 
-out:write(string.char(0x36, 0x04, 0, 8))
+out:write(string.char(0x36, 0x04, 0, font_height))
 
 for i = 0, 255 do
    local g = glyphs[i]
