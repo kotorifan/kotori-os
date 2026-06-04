@@ -37,7 +37,8 @@ clean()
     rm -rvf \
        build \
        $OUTPUT \
-       disk.img 
+       disk.img \
+       ./other/unscii.psf 
 }
 
 build_limine()
@@ -63,7 +64,9 @@ build()
     done
 
     if [ ! -f "./other/unscii.psf" ]; then
-        python3 ./scripts/hex2psf1.py
+        lua ./scripts/hex2psf1.lua \
+            ./other/unscii.hex \
+            ./other/unscii.psf
     fi
 
     $LD -r -b binary ./other/unscii.psf -o build/unscii.o
