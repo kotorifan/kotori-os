@@ -32,15 +32,12 @@ LDFLAGS="-nostdlib \
         -T linker.lds"
 ASFLAGS="-felf64"
 
-
-
 clean()
 {
     rm -rvf \
        build \
        $OUTPUT \
-       disk.img \
-       ./other/unscii.psf
+       disk.img 
 }
 
 build_limine()
@@ -62,7 +59,7 @@ build()
 
     find src -name "*.asm" | while IFS= read -r f; do
         mkdir -p "build/$(dirname "$f")"
-        $AS $ASFLAGS "$f" -o "build/${f%.asm}.o"
+        $AS $ASFLAGS "$f" -o "build/${f%.asm}_asm.o"
     done
 
     if [ ! -f "./other/unscii.psf" ]; then
@@ -73,44 +70,50 @@ build()
     $LD $LDFLAGS -o $OUTPUT $(find build -name "*.o")
 
     dd if=/dev/zero bs=1M count=0 seek=64 of=disk.img && \
-    echo "Done creating disk image"
+        echo "Done creating disk image"
     /sbin/parted -s disk.img mklabel gpt && \
-    echo "Created GPT table"
+        echo "Created GPT table"
     /sbin/parted -s disk.img mkpart primary 1MiB 2MiB && \
-    /sbin/parted -s disk.img set 1 bios_grub on && \
-    echo "Created BIOS boot partition"
+        /sbin/parted -s disk.img set 1 bios_grub on && \
+        echo "Created BIOS boot partition"
     /sbin/parted -s disk.img mkpart ESP fat32 4096s 100% && \
-    /sbin/parted -s disk.img set 2 esp on && \
-    echo "Created ESP partition"
-if [ -f "./other/limine-binary/limine" ]; then
-    # Wipe BIOS boot partition
-    dd if=/dev/zero of=disk.img bs=512 count=2048 seek=2048 conv=notrunc
-    
-    ./other/limine-binary/limine bios-install disk.img
-    
-    mformat -F -i disk.img@@2M ::
-    mmd -i disk.img@@2M ::/EFI
-    mmd -i disk.img@@2M ::/EFI/BOOT
-    mmd -i disk.img@@2M ::/boot
-    mmd -i disk.img@@2M ::/boot/limine
-    
-    mcopy -i disk.img@@2M $OUTPUT ::/boot
-    mcopy -i disk.img@@2M ./limine.conf ::/boot/limine
-    mcopy -i disk.img@@2M ./other/limine-binary/limine-bios.sys ::/boot/limine
-    mcopy -i disk.img@@2M ./other/limine-binary/BOOTX64.EFI ::/EFI/BOOT
-    mcopy -i disk.img@@2M ./other/limine-binary/BOOTIA32.EFI ::/EFI/BOOT
-    
-    echo "Built"
-fi
+        /sbin/parted -s disk.img set 2 esp on && \
+        echo "Created ESP partition"
+    if [ -f "./other/limine-binary/limine" ]; then
+        # Wipe BIOS boot partition
+        dd if=/dev/zero of=disk.img bs=512 count=2048 seek=2048 conv=notrunc
+        
+        ./other/limine-binary/limine bios-install disk.img
+        
+        mformat -F -i disk.img@@2M ::
+        mmd -i disk.img@@2M ::/EFI
+        mmd -i disk.img@@2M ::/EFI/BOOT
+        mmd -i disk.img@@2M ::/boot
+        mmd -i disk.img@@2M ::/boot/limine
+        
+        mcopy -i disk.img@@2M $OUTPUT ::/boot
+        mcopy -i disk.img@@2M ./limine.conf ::/boot/limine
+        mcopy -i disk.img@@2M ./other/limine-binary/limine-bios.sys ::/boot/limine
+        mcopy -i disk.img@@2M ./other/limine-binary/BOOTX64.EFI ::/EFI/BOOT
+        mcopy -i disk.img@@2M ./other/limine-binary/BOOTIA32.EFI ::/EFI/BOOT
+        
+        echo "Built"
+    fi
 }
 debug()
 {
-    qemu-system-x86_64 -hdd disk.img -S -s -monitor stdio
+    qemu-system-x86_64 \
+	    -drive format=raw,file=disk.img \
+	    -S -s \
+        -serial mon:stdio
+	-d int \
+	   -no-shutdown \
+	   -no-reboot
 }
 
 run()
 {
-    qemu-system-x86_64 -hdd disk.img 
+    qemu-system-x86_64 -drive format=raw,file=disk.img 
 }
 
 case "$1" in
