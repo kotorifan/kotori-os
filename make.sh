@@ -60,7 +60,7 @@ build()
 
     find src -name "*.asm" | while IFS= read -r f; do
         mkdir -p "build/$(dirname "$f")"
-        $AS $ASFLAGS "$f" -o "build/${f%.asm}_asm.o"
+        $AS $ASFLAGS "$f" -o "build/${f%.asm}.asm.o"
     done
 
     if [ ! -f "./other/unscii.psf" ]; then

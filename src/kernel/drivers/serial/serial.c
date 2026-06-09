@@ -4,7 +4,7 @@
 
 #define COM1 0x3f8
 
-uint32_t init_serial()
+uint32_t serial_init()
 {
 	_outb(COM1 + 1, 0x00); // Disable interrupts
 	_outb(COM1 + 3, 0x80); // Set baud rate divisor
@@ -25,22 +25,22 @@ uint32_t init_serial()
 	return 0;
 }
 
-char read_serialc()
+char serial_readc()
 {
 	while((_inb(COM1 + 5) & 1) == 0);
 	return _inb(COM1);
 }
 
-void write_serialc(const char data)
+void serial_writec(const char data)
 {
     while ((_inb(COM1 + 5) & 0x20) == 0);
     _outb(COM1, data);
 }
 
-void write_serial(const char* data)
+void serial_write(const char* data)
 {
 	while(*data) {
-		if(*data == '\n') write_serialc('\r');
-		write_serialc(*data++);
+		if(*data == '\n') serial_writec('\r');
+		serial_writec(*data++);
 	}
 }
