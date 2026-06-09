@@ -12,8 +12,8 @@
 
 // requires the unscii font in ./other/unscii.psf
 // to be linked to the kernel binary
-extern const uint8_t _binary___other_unscii_psf_start[];
-extern const uint8_t _binary___other_unscii_psf_end[];
+extern uint8_t _binary___other_unscii_psf_start[];
+extern uint8_t _binary___other_unscii_psf_end[];
 
 extern volatile struct limine_framebuffer_request framebuffer_request;
 extern struct limine_framebuffer* fb;
@@ -31,7 +31,7 @@ typedef struct {
 	uint8_t width, height;
 }  psf1_font_t;
 
-void font_init();
+void font_init(void);
 void limine_putblock(uint32_t pos_x, uint32_t pos_y, uint32_t scale, uint32_t color);
 void limine_putpixel(uint32_t pos_x, uint32_t pos_y, uint32_t color);
 void tty_init();

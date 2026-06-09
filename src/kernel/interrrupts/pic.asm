@@ -16,24 +16,24 @@ _disable_int:
         ret
 
 _init_pic:
-    mov al, ICW1
-    out PIC1_CTRL, al
-    out PIC2_CTRL, al
+        mov al, ICW1
+        out PIC1_CTRL, al
+        out PIC2_CTRL, al
 
-    mov al, IRQ_0
-    out PIC1_DATA, al
+        mov al, IRQ_0
+        out PIC1_DATA, al
 
-    mov al, IRQ_8
-    out PIC2_DATA, al
+        mov al, IRQ_8
+        out PIC2_DATA, al
 
-    mov al, 0x04
-    out PIC1_DATA, al
+        mov al, 0x04
+        out PIC1_DATA, al
 
-    mov al, 0x02
-    out PIC2_DATA, al
+        mov al, 0x02
+        out PIC2_DATA, al
 
-    mov al, 0x01
-    out PIC1_DATA, al
-    out PIC2_DATA, al
+        mov al, 0x01
+        out PIC1_DATA, al
+        out PIC2_DATA, al
 
-    ret
+        ret

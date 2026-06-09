@@ -16,22 +16,21 @@ static size_t tty_y;
 static uint32_t tty_fg_color;
 static uint32_t tty_bg_color;
 
-void font_init()
+
+void font_init(void)
 {
-
-	if(!fb || !fb->address) return;
-	fb_pitch_pixels = fb->pitch/4;
-
-	font->header = (psf1_font_header_t*)_binary___other_unscii_psf_start;
-
-	if(font->header->magic != PSF_MAGIC_NUM) return;
-
-	font->width = 8;
-	font->height = font->header->charsize;
-	font->num_glyphs = (font->header->mode & 1) ? 512 : 256;
-	font->glyphs = (uint8_t*)(_binary___other_unscii_psf_start + 4);
+    if (!fb || !fb->address)
+		return;
+    fb_pitch_pixels = fb->pitch / 4;
+    font->header =
+        (psf1_font_header_t *)_binary___other_unscii_psf_start;
+    if (font->header->magic != PSF_MAGIC_NUM) 
+		return;
+    font->width = 8;
+    font->height = font->header->charsize;
+    font->num_glyphs = (font->header->mode & 1) ? 512 : 256;
+    font->glyphs = _binary___other_unscii_psf_start + 4;
 }
-
 // add boundary checking
 void limine_putpixel(uint32_t pos_x, uint32_t pos_y, uint32_t color) 
 {
@@ -51,7 +50,7 @@ void limine_putblock(uint32_t pos_x, uint32_t pos_y, uint32_t scale, uint32_t co
 	}
 }	
 
-void tty_init()
+void tty_init(void)
 {
 	tty_x = 0;
 	tty_y = 0;
