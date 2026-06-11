@@ -2,32 +2,64 @@
 
 %include "misc.asm"             ; pushaq and popaq
 
-%define ISR_NUM_MAX 32
-%define IRQ_NUM_MAX 15
-
-%macro define_irss 0
-%assign i 0
-%rep ISR_NUM_MAX
-        global isr_stub_%i
-isr_stub_%i:
+%macro int_stub 1
+        global int_stub_%1
+int_stub_%1:
         push 0
-        push %i
-        jmp int_handler
-%assign i i+1
-%endrep
+        push %1
+        jmp _common_int_handler
+%endmacro
+ 
+%macro int_err_stub 1
+        global int_err_stub
+int_err_stub_%1:
+        push 1
+        jmp _common_int_handler
 %endmacro
 
-%macro define_irqs 0
-%assign i 0
-%rep IRQ_NUM_MAX
-        global irq_stub_%o
-irq_stub_%i:
-        push %i
-        jmp int_handler
-%endrep
-%endmacro
+;; Exceptions
+int_stub 0
+int_stub 1
+int_stub 2
+int_stub 3
+int_stub 4
+int_stub 5
+int_stub 6
+int_stub 7
+int_stub_error_code 8
+int_stub 9
+int_stub_error_code 10
+int_stub_error_code 11
+int_stub_error_code 12
+int_stub_error_code 13
+int_stub_error_code 14
+int_stub 15
+int_stub 16
+int_stub_error_code 17
+int_stub 18
 
-_int_handler:
+;; IRQs
+int_stub 32
+int_stub 33
+int_stub 34
+int_stub 35
+int_stub 36
+int_stub 37
+int_stub 38
+int_stub 39
+int_stub 40
+int_stub 41
+int_stub 42
+int_stub 43
+int_stub 44
+int_stub 45
+int_stub 46
+int_stub 47
+
+;; Syscall
+int_stub 48
+
+_common_int_handler:
         pushaq
 
         mov rax, cr0
@@ -41,7 +73,7 @@ _int_handler:
         
         mov rdi, rsp
 
-        call init_handler_further
+        call init_handler
 
         pop rax
         pop rax
@@ -51,4 +83,4 @@ _int_handler:
 
         add rsp, 16
 
-        iretq        
+        iret  
