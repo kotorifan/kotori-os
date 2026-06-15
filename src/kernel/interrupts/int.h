@@ -8,7 +8,9 @@ typedef struct {
 	uint16_t selector;
 	uint8_t reserved;
 	uint8_t flags;
-	uint16_t base_high;
+	uint16_t base_mid;
+	uint32_t base_high;
+	uint32_t zero;
 } __attribute__((packed)) idt_gate_t;
 
 typedef struct {
@@ -44,6 +46,8 @@ typedef struct {
     uint64_t ss;
 } cpu_state_t;
 
-void idt_set_gate(uint32_t n, uint32_t handler);
-void interrupt_handler(void);
-void exception_handler(void);
+void idt_init(void);
+void idt_set_gate(const uint8_t n, uint64_t handler);
+void idt_setup(void);
+void interrupt_handler(const cpu_state_t* cpu_state);
+void exception_handler(const cpu_state_t* cpu_state);

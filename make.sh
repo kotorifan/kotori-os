@@ -30,7 +30,7 @@ LDFLAGS="-nostdlib \
         -z max-page-size=0x1000 \
         --gc-sections \
         -T linker.lds"
-ASFLAGS="-felf64"
+ASFLAGS="-felf64 -Isrc/common/"
 
 clean()
 {

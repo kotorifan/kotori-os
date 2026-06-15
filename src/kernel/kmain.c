@@ -7,6 +7,7 @@
 #include <string.h>
 #include <drivers/tty/tty.h>
 #include <drivers/serial/serial.h>
+#include <interrupts/int.h>
 
 extern void _disable_int(void);
 extern void _init_pic(void);
@@ -52,5 +53,9 @@ void kmain(void)
 	_disable_int();
 	_init_pic();
 
+	idt_init(); // also enabled interrupts
+	asm volatile("mov $1, %eax\n"
+				 "mov $1, %ecx \n"
+				 "div %ecx \n");
     halt_catch_fire();
 }
