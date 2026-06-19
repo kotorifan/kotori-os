@@ -1,110 +1,91 @@
-;; idt.asm
+%include "misc.asm"
 
-%include "misc.asm"             ; pushaq and popaq
-
-extern interrupt_handler
-
-%macro int_stub 1
-        global int_stub_%1
-int_stub_%1:
-        push 0
-        push %1
-        jmp _common_int_handler
-%endmacro
- 
-%macro int_stub_error_code 1
-        global int_stub_error_code_%1
-int_stub_%1:
-        push %1
-        jmp _common_int_handler
+extern isr_handler
+	
+%macro isr_stub 1
+global isr_stub_%1
+isr_stub_%1:
+  push 0
+  push %1
+  jmp interrupt_handler_common
 %endmacro
 
+%macro isr_error_stub 1
+global isr_stub_%1
+isr_stub_%1:
+  push %1
+  jmp interrupt_handler_common
+%endmacro
 
-;; Exceptions
-int_stub 0
-int_stub 1
-int_stub 2
-int_stub 3
-int_stub 4
-int_stub 5
-int_stub 6
-int_stub 7
-int_stub_error_code 8
-int_stub 9
-int_stub_error_code 10
-int_stub_error_code 11
-int_stub_error_code 12
-int_stub_error_code 13
-int_stub_error_code 14
-int_stub 15
-int_stub 16
-int_stub_error_code 17
-int_stub 18
+%macro irq_stub 1
+global irq_stub_%1
+irq_stub_%1:
+	push 0
+	push %1
+	jmp interrupt_handler_common
+%endmacro
 
-int_stub 19
-int_stub 20
-int_stub 21
-int_stub 22
-int_stub 23
-int_stub 24
-int_stub 25
-int_stub 26
-int_stub 27
-int_stub 28
-int_stub 29
-int_stub 30
-int_stub 31
-;; IRQs
-int_stub 32
-;int_stub 33
-;int_stub 34
-;int_stub 35
-;int_stub 36
-;int_stub 37
-;int_stub 38
-;int_stub 39
-;int_stub 40
-;int_stub 41
-;int_stub 42
-;int_stub 43
-;int_stub 44
-;int_stub 45
-;int_stub 46
-int_stub 47
+isr_stub 0
+isr_stub 1
+isr_stub 2
+isr_stub 3
+isr_stub 4
+isr_stub 5
+isr_stub 6
+isr_stub 7
+isr_error_stub 8
+isr_stub 9
+isr_error_stub 10
+isr_error_stub 11
+isr_error_stub 12
+isr_error_stub 13
+isr_error_stub 14
+isr_stub 15
+isr_stub 16
+isr_error_stub 17
+isr_stub 18
+isr_stub 19
+isr_stub 20
+isr_stub 21
+isr_stub 22
+isr_stub 23
+isr_stub 24
+isr_stub 25
+isr_stub 26
+isr_stub 27
+isr_stub 28
+isr_stub 29
+isr_error_stub 30
+isr_stub 31
 
-;; Syscall
-int_stub 48
+irq_stub 32
+irq_stub 33
+irq_stub 34
+irq_stub 35
+irq_stub 36
+irq_stub 37
+irq_stub 38
+irq_stub 39
+irq_stub 40
+irq_stub 41
+irq_stub 42
+irq_stub 43
+irq_stub 44
+irq_stub 45
+irq_stub 46
+irq_stub 47
 
-_common_int_handler:
-        pushaq
-
-        mov rax, cr0
-        push rax
-        mov rax, cr2
-        push rax
-        mov rax, cr3
-        push rax
-        mov rax, cr4
-        push rax
-        
-        mov rdi, rsp
-
-        call interrupt_handler
-
-        pop rax
-        pop rax
-        pop rax
-        pop rax
-        popaq
-
-        add rsp, 16
-
-        iretq
-
-global int_stub_table
-int_stub_table:
-%assign  i 0
-%rep 32
-        dq int_stub_%+i
-%assign i i+1
-%endrep
+interrupt_handler_common:
+	pushaq
+	cld
+	
+	mov rdi, rsp
+	
+	mov rax, rsp
+	sub rsp, 8
+	and rsp, ~0xf
+	call isr_handler
+	popaq
+	add rsp, 16
+	iretq
+	
