@@ -50,7 +50,7 @@ if not exist other\unscii.psf (
   lua scripts\hex2psf1.lua other\unscii.hex other\unscii.psf
 )
 
-%LD% -r -b binary other\unscii.psf -o build\unscii.o
+x86_64-elf-ld -r -b binary -o build\unscii.o other\unscii.psf
 
 set "objs="
 for /f "delims=" %%f in ('dir /b /s build\*.o 2^>nul') do set "objs=!objs! %%f"

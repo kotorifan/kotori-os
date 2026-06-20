@@ -3,13 +3,15 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <stdbool.h>
 #include <limine.h>
 
 extern volatile struct limine_framebuffer_request framebuffer_request;
 extern struct limine_framebuffer* fb;
 
 static uint64_t fb_pitch_pixels;
-static psf1_font_t* font;
+static psf1_font_t font_inst;
+static psf1_font_t* font = &font_inst;
 
 static size_t tty_x;
 static size_t tty_y;
@@ -23,13 +25,13 @@ void font_init(void)
 		return;
     fb_pitch_pixels = fb->pitch / 4;
     font->header =
-        (psf1_font_header_t *)_binary___other_unscii_psf_start;
+        (psf1_font_header_t *)_binary_other_unscii_psf_start;
     if (font->header->magic != PSF_MAGIC_NUM) 
 		return;
     font->width = 8;
     font->height = font->header->charsize;
     font->num_glyphs = (font->header->mode & 1) ? 512 : 256;
-    font->glyphs = _binary___other_unscii_psf_start + 4;
+    font->glyphs = _binary_other_unscii_psf_start + 4;
 }
 // add boundary checking
 void limine_putpixel(uint32_t pos_x, uint32_t pos_y, uint32_t color) 
@@ -87,8 +89,16 @@ void tty_setcolor(const uint32_t color)
 	tty_fg_color = color;
 }
 
-void kwrite(const char* data){	
+void kwrite(const char* data)
+{
+	tty_fg_color = 0xffffff;
 	for(uint32_t i = 0; i < strlen(data); i++) {
-		tty_putcharat(font, data[i], tty_x, tty_y, tty_fg_color, tty_bg_color);
+		if(data[i] == '\n') {
+			tty_x = 0;
+			tty_y += font->height * FONT_SCALE;
+		} else {
+			tty_putcharat(font, data[i], tty_x, tty_y, tty_fg_color, tty_bg_color);
+			tty_x += font->width * FONT_SCALE;
+		}
 	}
 }

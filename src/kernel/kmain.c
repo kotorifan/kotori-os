@@ -46,16 +46,12 @@ void kmain(void)
 		halt_catch_fire();
 	}
 	fb = framebuffer_request.response->framebuffers[0];
-
-	/* font_init(); */
-	/* tty_init(); */
-
 	_disable_int();
-	_init_pic();
-
-	idt_init(); // also enabled interrupts
-	asm volatile("mov $1, %eax\n"
-				 "mov $1, %ecx \n"
-				 "div %ecx \n");
+	_init_pic();	
+	idt_init(); // also enables interrupts
+	font_init();
+	tty_init();
+	
+	kwrite("Booted okay so far\n");
     halt_catch_fire();
 }
