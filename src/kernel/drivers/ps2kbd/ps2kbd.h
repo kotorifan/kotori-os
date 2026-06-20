@@ -1,1 +1,2 @@
-//ps2kbd.h
+// ps2kbd.h
+#pragma once
