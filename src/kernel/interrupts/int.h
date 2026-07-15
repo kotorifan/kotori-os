@@ -38,7 +38,7 @@ typedef struct {
     uint64_t inter;
     uint64_t err;
 
-    // Von der CPU gesichert
+    // Saved by the CPU
     uint64_t rip;
     uint64_t cs;
     uint64_t eflags;
@@ -46,10 +46,13 @@ typedef struct {
     uint64_t ss;
 } cpu_state_t;
 
+typedef void (*isr_t)(const cpu_state_t*);
+
 void idt_init(void);
 void idt_set_gate(const uint8_t n, void* handler);
 void isr_handler(const cpu_state_t* cpu_state);
 void exception_handler(const cpu_state_t* cpu_state);
+void register_int_handler(const uint8_t n, isr_t handler);
 
 extern void isr_stub_0(void);
 extern void isr_stub_1(void);

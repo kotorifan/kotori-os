@@ -2,51 +2,76 @@
 // Tables for scancodes (as X-macros)
 #pragma once
 
-#define DE_SCANCODE_TABLE \
-	SCANCODE(0x00, UNKNOWN, 0, 0) \
-	SCANCODE(0x1e, A, 'a', 'A') \
-	SCANCODE(0x30, B, 'b', 'B') \
-	SCANCODE(0x2e, C, 'c', 'C') \
-	SCANCODE(0x20, D, 'd', 'D') \
-	SCANCODE(0x12, E, 'e', 'E') \
-	SCANCODE(0x21, F, 'f', 'F') \
-	SCANCODE(0x22, G, 'g', 'G') \
-	SCANCODE(0x23, H, 'h', 'H') \
-	SCANCODE(0x17, I, 'i', 'I') \
-	SCANCODE(0x24, J, 'j', 'J') \
-	SCANCODE(0x25, K, 'k', 'K') \
-	SCANCODE(0x26, L, 'l', 'L') \
-	SCANCODE(0x32, M, 'm', 'M') \
-	SCANCODE(0x31, N, 'n', 'N') \
-	SCANCODE(0x18, O, 'o', 'O') \
-	SCANCODE(0x19, P, 'p', 'P') \
-	SCANCODE(0x10, Q, 'q', 'Q') \
-	SCANCODE(0x13, R, 'r', 'R') \
-	SCANCODE(0x1f, S, 's', 'S') \
-	SCANCODE(0x14, T, 't', 'T') \
-	SCANCODE(0x16, U, 'u', 'U') \
-	SCANCODE(0x2f, V, 'v', 'V') \
-	SCANCODE(0x11, W, 'w', 'W') \
-	SCANCODE(0x2d, X, 'x', 'X') \
-	SCANCODE(0x2c, Y, 'y', 'Y') \
-	SCANCODE(0x15, Z, 'z', 'Z') \
-	SCANCODE(0x02, K1, '1', '!') \
-	SCANCODE(0x03, K2, '2', '"') \
-	SCANCODE(0x04, K3, '3', '§') \
-	SCANCODE(0x05, K4, '4', '$') \
-	SCANCODE(0x06, K5, '5', '%') \
-	SCANCODE(0x07, K6, '6', '&') \
-	SCANCODE(0x08, K7, '7', '/') \
-	SCANCODE(0x09, K8, '8', '(') \
-	SCANCODE(0x0a, K9, '9', ')') \
-	SCANCODE(0x0b, K0, '0', '=') \
-	SCANCODE(0x1a, UE, 'Ü', 'ü') \
-	SCANCODE(0x27, OE, 'Ö', 'ö') \
-	SCANCODE(0x28, AE, 'Ä', 'ä') \
-	SCANCODE(40, RETURN, '\n', '\n') \
-	SCANCODE(41, ESCAPE, 0x1B, 0x1B) \
-	SCANCODE(42, BACKSPACE, '\b', '\b') \
-	SCANCODE(43, TAB, '\t', '\t') \
-	SCANCODE(44, SPACE, ' ', ' ') \
-	SCANCODE(45, MINUS, '-', '_') \
-	SCANCODE(46, EQUALS, '=', '+') \
+#include <stdint.h>
+
+#define SCANCODE_LEN(scancodes)					\
+	(sizeof(scancodes)/sizeof(scancodes[0]))
+
+typedef struct {
+	const uint8_t scancode;
+	const char* name;
+	const char letter_low;
+	const char letter_up;
+} scancodes_t;
+
+static const scancodes_t scancodes[] = {
+    [0x00] = {0x00, "UNKNOWN", 0, 0},
+    [0x01] = {0x01, "ESC", 0, 0},
+    [0x02] = {0x02, "1", '1', '!'},
+	[0x03] = {0x03, "2", '2', '@'},
+    [0x04] = {0x04, "3", '3', '#'},
+    [0x05] = {0x05, "4", '4', '$'},
+    [0x06] = {0x06, "5", '5', '%'},
+    [0x07] = {0x07, "6", '6', '^'},
+    [0x08] = {0x08, "7", '7', '&'},
+    [0x09] = {0x09, "8", '8', '*'},
+    [0x0a] = {0x0a, "9", '9', '('},
+    [0x0b] = {0x0b, "0", '0', ')'},
+    [0x0c] = {0x0c, "-", '-', '_'},
+    [0x0d] = {0x0d, "=", '=', '+'},
+    [0x0e] = {0x0e, "Backspace", 0, 0},
+    [0x0f] = {0x0f, "Tab", 0, 0},
+    [0x10] = {0x10, "Q", 'q', 'Q'},
+    [0x11] = {0x11, "W", 'w', 'W'},
+    [0x12] = {0x12, "E", 'e', 'E'},
+    [0x13] = {0x13, "R", 'r', 'R'},
+    [0x14] = {0x14, "T", 't', 'T'},
+    [0x15] = {0x15, "Y", 'y', 'Y'},
+    [0x16] = {0x16, "U", 'u', 'U'},
+    [0x17] = {0x17, "I", 'i', 'I'},
+    [0x18] = {0x18, "O", 'o', 'O'},
+    [0x19] = {0x19, "P", 'p', 'P'},
+    [0x1a] = {0x1a, "[", '[', '{'},
+    [0x1b] = {0x1b, "]", ']', '}'},
+    [0x1c] = {0x1c, "Enter", 0, 0},
+    [0x1d] = {0x1d, "LCtrl", 0, 0},
+    [0x1e] = {0x1e, "A", 'a', 'A'},
+    [0x1f] = {0x1f, "S", 's', 'S'},
+    [0x20] = {0x20, "D", 'd', 'D'},
+    [0x21] = {0x21, "F", 'f', 'F'},
+    [0x22] = {0x22, "G", 'g', 'G'},
+    [0x23] = {0x23, "H", 'h', 'H'},
+    [0x24] = {0x24, "J", 'j', 'J'},
+    [0x25] = {0x25, "K", 'k', 'K'},
+    [0x26] = {0x26, "L", 'l', 'L'},
+    [0x27] = {0x27, ";", ';', ':'},
+    [0x28] = {0x28, "'", '\'', '"'},
+    [0x29] = {0x29, "`", '`', '~'},
+    [0x2a] = {0x2a, "LShift", 0, 0},
+    [0x2b] = {0x2b, "\\", '\\', '|'},
+    [0x2c] = {0x2c, "Z", 'z', 'Z'},
+    [0x2d] = {0x2d, "X", 'x', 'X'},
+    [0x2e] = {0x2e, "C", 'c', 'C'},
+    [0x2f] = {0x2f, "V", 'v', 'V'},
+    [0x30] = {0x30, "B", 'b', 'B'},
+    [0x31] = {0x31, "N", 'n', 'N'},
+    [0x32] = {0x32, "M", 'm', 'M'},
+    [0x33] = {0x33, ",", ',', '<'},
+    [0x34] = {0x34, ".", '.', '>'},
+    [0x35] = {0x35, "/", '/', '?'},
+    [0x36] = {0x36, "RShift", 0, 0},
+    [0x37] = {0x37, "KEYPAD", '*', 0},
+    [0x38] = {0x38, "LAlt", 0, 0},
+    [0x39] = {0x39, "Space", ' ', ' '},
+    [0x3a] = {0x3a, "CapsLock", 0, 0},
+};

@@ -1,20 +1,21 @@
 %include "misc.asm"
 
 extern isr_handler
+extern irq_handler
 	
 %macro isr_stub 1
 global isr_stub_%1
 isr_stub_%1:
   push 0
   push %1
-  jmp interrupt_handler_common
+  jmp isr_handler_common
 %endmacro
 
 %macro isr_error_stub 1
 global isr_stub_%1
 isr_stub_%1:
   push %1
-  jmp interrupt_handler_common
+  jmp isr_handler_common
 %endmacro
 
 %macro irq_stub 1
@@ -22,7 +23,7 @@ global irq_stub_%1
 irq_stub_%1:
 	push 0
 	push %1
-	jmp interrupt_handler_common
+	jmp irq_handler_common
 %endmacro
 
 isr_stub 0
@@ -75,17 +76,50 @@ irq_stub 45
 irq_stub 46
 irq_stub 47
 
-interrupt_handler_common:
-	pushaq
-	cld
-	
-	mov rdi, rsp
-	
-	mov rax, rsp
-	sub rsp, 8
-	and rsp, ~0xf
-	call isr_handler
-	popaq
-	add rsp, 16
-	iretq
-	
+isr_handler_common:
+    pushaq
+    mov ax, ds
+    push rax
+    mov ax, 0x10                ; kernel data segment
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    mov rdi, rsp
+    add rdi, 8
+    push rdi
+    call isr_handler
+    pop rax
+    
+    pop rax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    popaq
+    add rsp, 16
+    iretq
+
+irq_handler_common: 
+    pushaq
+    mov ax, ds
+    push rax
+    mov ax, 0x10                ; kernel data segment
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov rdi, rsp
+    add rdi, 8
+    call irq_handler
+    pop rax
+    
+    pop rax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    popaq
+    add rsp, 16
+    iretq

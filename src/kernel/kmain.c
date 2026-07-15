@@ -8,9 +8,10 @@
 #include <drivers/tty/tty.h>
 #include <drivers/serial/serial.h>
 #include <interrupts/int.h>
-
-extern void _disable_int(void);
-extern void _init_pic(void);
+#include <drivers/ps2kbd/ps2kbd.h>
+#include <interrupts/pic.h>
+extern void _inter_disable(void);
+extern void _inter_enable(void);
 
 __attribute__((used, section(".limine_requests")))
 static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(6);
@@ -30,7 +31,7 @@ static volatile uint64_t limine_requests_end_marker[] = LIMINE_REQUESTS_END_MARK
 
 inline static void halt_catch_fire(void)
 {
-	for(;;) asm volatile("pause");
+	for(;;) asm volatile("hlt");
 }
 
 struct limine_framebuffer* fb;
@@ -46,12 +47,11 @@ void kmain(void)
 		halt_catch_fire();
 	}
 	fb = framebuffer_request.response->framebuffers[0];
-	_disable_int();
-	_init_pic();	
+	_inter_disable();
 	idt_init(); // also enables interrupts
 	font_init();
 	tty_init();
-	
-	kwrite("Booted okay so far\n");
-    halt_catch_fire();
+	keyb_init();
+   
+	halt_catch_fire();
 }

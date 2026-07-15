@@ -1,6 +1,7 @@
 // int.c
 // interrupt-related stuff
 #include <interrupts/int.h>
+#include <drivers/tty/tty.h>
 #include <drivers/serial/serial.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -8,14 +9,14 @@
 
 #define IDT_GATES_MAX 256
 
-typedef void (*interrupt_routine_t)(const cpu_state_t*);
-extern void _load_idt(const idt_ptr_t* idt_ptr);
-extern void _enable_ints(void);
+extern void _idt_flush(const idt_ptr_t* idt_ptr);
+extern void _inter_enable(void);
+extern void _inter_disable(void);
 extern void _hang(void);
 __attribute__((aligned(0x1000))) 
 static idt_gate_t idt[IDT_GATES_MAX];
-													
-uint64_t routine_handlers[IDT_GATES_MAX];
+static isr_t interrupt_handlers[256];
+
 static const char* exception_messages[] = {
 	"Division by Zero (0x00)",
 	"Debug (0x01)",
@@ -107,8 +108,8 @@ void idt_init(void)
 	idt_set_gate(46, irq_stub_46);
 	idt_set_gate(47, irq_stub_47);
 	/* idt_setup_gates(); */
-	_load_idt(&idt_ptr); // lidt; ret (might change this to idt_ptr->base)
-	_enable_ints(); // sti; ret
+	_idt_flush(&idt_ptr); // lidt; ret (might change this to idt_ptr->base)
+	_inter_enable(); // sti; ret
 }
 
 void idt_set_gate(uint8_t vector, void* handler) {
@@ -132,29 +133,42 @@ void idt_set_gate(uint8_t vector, void* handler) {
 
 void isr_handler(const cpu_state_t* cpu_state)
 {
-	serial_write("INTERRUPT: ");
-	if(cpu_state->inter < 32)
-		exception_handler(cpu_state);
-
-	interrupt_routine_t handler = (interrupt_routine_t)routine_handlers[cpu_state->inter];
-
+	isr_t handler = interrupt_handlers[cpu_state->inter];
 	if(handler)
 		handler(cpu_state);
-
-	if(cpu_state->inter >= 40) 
+	
+	if(cpu_state->inter >= 40) {
 		_outb(0xa0, 0x20);
+	}
 	_outb(0x20, 0x20);
-
-	serial_write("Interrupt invoked");
 }
 
 __attribute__((noreturn))
 void exception_handler(const cpu_state_t* cpu_state)
 {
 	serial_write("An exception occurred. You screwed up.\n");
-	if(cpu_state->inter < 32)
-		serial_write(exception_messages[cpu_state->inter]);
-	else
-		serial_write("Unknown exception");
+	if(cpu_state->inter < 32) {
+		kwrite(exception_messages[cpu_state->inter]);
+	} else {
+		kwrite("Unknown exception");
+	}
 	for(;;) _hang(); // clt; ret
+}
+
+void irq_handler(const cpu_state_t* cpu_state)
+{
+	if(interrupt_handlers[cpu_state->inter] != 0) {
+		isr_t handler = interrupt_handlers[cpu_state->inter];
+		handler(cpu_state);
+	}
+
+	_outb(0x20, 0x20);
+	if(cpu_state->inter < 40) {
+		_outb(0xa0, 0x20);
+	}
+}
+
+void register_int_handler(const uint8_t n, isr_t handler)
+{
+	interrupt_handlers[n] = handler;
 }
