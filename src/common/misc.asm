@@ -1,5 +1,4 @@
 ;; misc.asm
-
 ;; Because pushaq and popaq are not available in long mode
 
 %macro pushaq 0

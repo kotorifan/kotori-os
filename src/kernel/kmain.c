@@ -9,10 +9,10 @@
 #include <drivers/serial/serial.h>
 #include <interrupts/int.h>
 #include <drivers/ps2kbd/ps2kbd.h>
-#include <interrupts/pic.h>
 extern void _inter_disable(void);
 extern void _inter_enable(void);
-
+extern void _pic_remap(void);
+extern void _pic_disable(void);
 __attribute__((used, section(".limine_requests")))
 static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(6);
 
@@ -48,6 +48,8 @@ void kmain(void)
 	}
 	fb = framebuffer_request.response->framebuffers[0];
 	_inter_disable();
+	_pic_remap();
+	_pic_disable();
 	idt_init(); // also enables interrupts
 	font_init();
 	tty_init();
